@@ -1,44 +1,104 @@
-// El principal objetivo de este desafío es fortalecer tus habilidades en lógica de programación. Aquí deberás desarrollar la lógica para resolver el problema.
-// Variables principales en español
-let participantes = [];
-let resultadoSorteo = {};
+const MAX_AMIGOS = 5;
 
-// Función para agregar participante
-function agregarParticipante(nombre) {
-	if (nombre && !participantes.includes(nombre)) {
-		participantes.push(nombre);
-	}
+const CONFIG = {
+  MAX_AMIGOS: MAX_AMIGOS,
+  MENSAJES: {
+    LIMITE_ALCANZADO: `¡Solo se permiten ${MAX_AMIGOS} amigos!`,
+    CAMPO_VACIO: 'Por favor, inserte un nombre.',
+    NOMBRE_DUPLICADO: 'Ese nombre ya está en la lista.',
+    LISTA_VACIA: 'No hay amigos para sortear.'
+  }
+};
+
+let amigos = [];
+const inputAmigo = document.getElementById('amigo');
+const listaAmigos = document.getElementById('listaAmigos');
+const listaSorteo = document.getElementById('resultado');
+const contadorAmigos = document.getElementById('contadorAmigos');
+
+function mostrarMensaje(mensaje) {
+  listaSorteo.innerHTML = `<li>${mensaje}</li>`;
 }
 
-// Función para realizar el sorteo de amigo secreto
-function sortearAmigosSecretos() {
-	if (participantes.length < 2) {
-		alert('Se necesitan al menos dos participantes.');
-		return;
-	}
-	let amigos = [...participantes];
-	for (let participante of participantes) {
-		let posibles = amigos.filter(a => a !== participante);
-		if (posibles.length === 0) {
-			// Reiniciar sorteo si no hay opción válida
-			return sortearAmigosSecretos();
-		}
-		let indice = Math.floor(Math.random() * posibles.length);
-		resultadoSorteo[participante] = posibles[indice];
-		amigos = amigos.filter(a => a !== posibles[indice]);
-	}
+function actualizarContador() {
+  if (contadorAmigos) {
+    contadorAmigos.textContent = `Amigos: ${amigos.length}/${CONFIG.MAX_AMIGOS}`;
+  }
 }
 
-// Función para mostrar el resultado en consola (puedes adaptar para mostrar en HTML)
-function mostrarResultado() {
-	for (let participante in resultadoSorteo) {
-		console.log(`${participante} -> ${resultadoSorteo[participante]}`);
-	}
+function agregarAmigo() {
+  const nombre = inputAmigo.value.trim();
+  
+  if (!nombre) {
+    alert(CONFIG.MENSAJES.CAMPO_VACIO);
+    return;
+  }
+  
+  if (amigos.includes(nombre)) {
+    mostrarMensaje(CONFIG.MENSAJES.NOMBRE_DUPLICADO);
+    return;
+  }
+  
+  if (amigos.length >= CONFIG.MAX_AMIGOS) {
+    mostrarMensaje(CONFIG.MENSAJES.LIMITE_ALCANZADO);
+    return;
+  }
+  
+  amigos.push(nombre);
+  inputAmigo.value = '';
+  actualizarListaAmigos();
+  actualizarContador();
+  limpiarResultado();
 }
 
-// Ejemplo de uso:
-agregarParticipante('Ana');
-agregarParticipante('Luis');
-agregarParticipante('María');
-sortearAmigosSecretos();
-mostrarResultado();
+function actualizarListaAmigos() {
+  listaAmigos.innerHTML = '';
+  amigos.forEach(amigo => {
+    const li = document.createElement('li');
+    li.textContent = amigo;
+    listaAmigos.appendChild(li);
+  });
+}
+
+function sortearAmigo() {
+  if (amigos.length === 0) {
+    mostrarMensaje(CONFIG.MENSAJES.LISTA_VACIA);
+    return;
+  }
+  
+  const indiceAleatorio = Math.floor(Math.random() * amigos.length);
+  const amigoSorteado = amigos[indiceAleatorio];
+  
+  mostrarMensaje(`Amigo sorteado: ${amigoSorteado}`);
+  
+  amigos.splice(indiceAleatorio, 1);
+  
+  actualizarListaAmigos();
+  actualizarContador();
+  
+  if (amigos.length === 0) {
+    setTimeout(() => {
+      alert("¡Todos los amigos han sido sorteados!");
+      mostrarMensaje("¡Todos los amigos han sido sorteados!");
+      limpiarTodo();
+    }, 1500);
+  }
+}
+
+function limpiarTodo() {
+  amigos = [];
+  listaAmigos.innerHTML = '';
+  listaSorteo.innerHTML = '';
+  actualizarContador();
+  inputAmigo.focus();
+}
+
+function limpiarResultado() {
+  listaSorteo.innerHTML = '';
+}
+
+inputAmigo.addEventListener('keyup', (e) => {
+  if (e.key === 'Enter') agregarAmigo();
+});
+
+actualizarContador();
